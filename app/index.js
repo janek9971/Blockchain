@@ -73,7 +73,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 app.post('/api/mine', (req, res) => {
   const block = bc.addBlock(req.body.data);
   console.log(`New block added: ${block.toString()}`);
-  p2pServer.sendMe(bc);
+  p2pServer.syncChains();
   res.redirect('/api/blocks');
 })
 
