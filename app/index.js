@@ -1,9 +1,8 @@
 const express = require("express");
 const Blockchain = require('../blockchain');
-const bc = new Blockchain();
-const port = process.env.PORT || 3001;
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
+const P2pServer = require('./p2p-server')
 // Extended: https://swagger.io/specification/#infoObject
 const swaggerOptions = {
   swaggerDefinition: {
@@ -25,7 +24,9 @@ const swaggerOptions = {
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 
 
-
+const HTTP_PORT = process.env.HTTP_PORT || 3001;
+const bc = new Blockchain();
+const p2pServer = new P2pServer(bc);
 const app = express();
 app.use(express.json());
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
@@ -72,10 +73,12 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 app.post('/api/mine', (req, res) => {
   const block = bc.addBlock(req.body.data);
   console.log(`New block added: ${block.toString()}`);
+  p2pServer.sendMe(bc);
   res.redirect('/api/blocks');
 })
 
 
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+app.listen(HTTP_PORT, () => {
+  console.log(`Server listening on port ${HTTP_PORT}`);
 });
+p2pServer.listen();
